@@ -127,15 +127,27 @@ class PaynowPaymentProcessor
      */
     private function processFromCart($cart, $external_id, $isGuest = false, $guestEmail = ''): ?Authorize
     {
-        PaynowLogger::info(
-            'Processing payment for cart {cartId={}, externalId={}, isGuest={}, guestEmail={}',
-            [
-                $cart->id,
-                $external_id,
-                $isGuest,
-                $guestEmail
-            ]
-        );
+        if($isGuest){
+            PaynowLogger::info(
+                'Processing GUEST payment for cart {cartId={}, externalId={}, guestEmail={}}',
+                [
+                    $cart->id,
+                    $external_id,
+                    $guestEmail,
+                ]
+                );
+        } else {
+            PaynowLogger::info(
+                'Processing payment for cart {cartId={}, externalId={}, guestEmail={}}',
+                [
+                    $cart->id,
+                    $external_id,
+                    $isGuest,
+                    $guestEmail
+                ]
+            );
+        }
+       
         $idempotency_key      = $this->generateIdempotencyKey($external_id);
         $payment_request_data = $this->paymentDataBuilder->fromCart($cart, $external_id, $isGuest, $guestEmail);
 
