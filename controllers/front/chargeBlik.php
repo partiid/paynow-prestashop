@@ -30,6 +30,17 @@ class PaynowChargeBlikModuleFrontController extends PaynowFrontController
             'success' => false
         ];
 
+        $isGuest = false; 
+        $guestEmail = '';
+        array_merge($response, $response['email'] = Tools::getValue('guestEmail'));
+        if(Tools::getValue('guestEmail')){
+            $isGuest = true; 
+            if(Tools::getValue('guestEmail') != ''){
+                $guestEmail = Tools::getValue('guestEmail');
+                
+            }
+        }
+
         if ($this->isTokenValid()) {
             $cart = new Cart(Context::getContext()->cart->id);
             if (empty($cart) || ! $cart->id) {
@@ -44,7 +55,8 @@ class PaynowChargeBlikModuleFrontController extends PaynowFrontController
             }
 
             try {
-                $payment_data = (new PaynowPaymentProcessor($this->context, $this->module))->process();
+                $payment_data = (new PaynowPaymentProcessor($this->context, $this->module))->process($isGuest, $guestEmail);
+                array_merge($response, $response['email'] = $payment_data);
                 if ($payment_data['status'] && in_array($payment_data['status'], [
                         Paynow\Model\Payment\Status::STATUS_NEW,
                         Paynow\Model\Payment\Status::STATUS_PENDING

@@ -40,15 +40,18 @@ class PaynowPaymentDataBuilder
      * @return array
      * @throws Exception
      */
-    public function fromCart($cart, $external_id): array
+    public function fromCart($cart, $external_id, $isGuest = false, $guestEmail = ''): array
     {
         return $this->build(
+            
             $cart->id_currency,
             $cart->id_customer,
             $cart->getOrderTotal(),
             $cart->id,
             $this->translations['Order to cart: '] . $cart->id,
-            $external_id
+            $external_id,
+            $isGuest,
+            $guestEmail
         );
     }
 
@@ -90,10 +93,16 @@ class PaynowPaymentDataBuilder
         $total_to_paid,
         $id_cart,
         $description,
-        $external_id = null
+        $external_id = null,
+        $isGuest = false,
+        $guestEmail = ''
     ): array {
         $currency = Currency::getCurrency($id_currency);
         $customer = new Customer((int)$id_customer);
+        if($isGuest) 
+        {
+            $customer->email = $guestEmail;    
+        }
 
         $request = [
             'amount'      => number_format($total_to_paid * 100, 0, '', ''),

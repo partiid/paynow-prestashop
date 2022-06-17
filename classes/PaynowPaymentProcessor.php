@@ -52,7 +52,7 @@ class PaynowPaymentProcessor
      * @return array
      * @throws Exception
      */
-    public function process(): array
+    public function process($isGuest = false, $guestEmail = ''): array
     {
         if (PaynowConfigurationHelper::CREATE_ORDER_BEFORE_PAYMENT === (int)Configuration::get('PAYNOW_CREATE_ORDER_STATE') && ! empty($this->module->currentOrder)) {
             $order       = new Order($this->module->currentOrder);
@@ -71,7 +71,7 @@ class PaynowPaymentProcessor
         } else {
             $cart        = $this->context->cart;
             $external_id = uniqid($cart->id . '_', false);
-            $payment     = $this->processFromCart($cart, $external_id);
+            $payment     = $this->processFromCart($cart, $external_id, $isGuest, $guestEmail);
 
             PaynowPaymentData::create(
                 $payment->getPaymentId(),
@@ -125,17 +125,19 @@ class PaynowPaymentProcessor
     /**
      * @throws PaynowPaymentAuthorizeException
      */
-    private function processFromCart($cart, $external_id): ?Authorize
+    private function processFromCart($cart, $external_id, $isGuest = false, $guestEmail = ''): ?Authorize
     {
         PaynowLogger::info(
-            'Processing payment for cart {cartId={}, externalId={}}',
+            'Processing payment for cart {cartId={}, externalId={}, isGuest={}, guestEmail={}',
             [
                 $cart->id,
-                $external_id
+                $external_id,
+                $isGuest,
+                $guestEmail
             ]
         );
         $idempotency_key      = $this->generateIdempotencyKey($external_id);
-        $payment_request_data = $this->paymentDataBuilder->fromCart($cart, $external_id);
+        $payment_request_data = $this->paymentDataBuilder->fromCart($cart, $external_id, $isGuest, $guestEmail);
 
         return $this->sendPaymentRequest($payment_request_data, $idempotency_key);
     }

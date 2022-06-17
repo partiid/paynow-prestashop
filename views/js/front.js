@@ -27,7 +27,14 @@ $jscomp.polyfill=function(a,n,f,p){if(n){f=$jscomp.global;a=a.split(".");for(p=0
     "return;"),e="function"===typeof b[a]);return e};a.fn.mask=function(b,d){d=d||{};var e=this.selector,c=a.jMaskGlobals,f=c.watchInterval;c=d.watchInputs||c.watchInputs;var k=function(){if(p(this,b,d))return a(this).data("mask",new n(this,b,d))};a(this).each(k);e&&""!==e&&c&&(clearInterval(a.maskWatchers[e]),a.maskWatchers[e]=setInterval(function(){a(document).find(e).each(k)},f));return this};a.fn.masked=function(a){return this.data("mask").getMaskedVal(a)};a.fn.unmask=function(){clearInterval(a.maskWatchers[this.selector]);
     delete a.maskWatchers[this.selector];return this.each(function(){var b=a(this).data("mask");b&&b.remove().removeData("mask")})};a.fn.cleanVal=function(){return this.data("mask").getCleanVal()};a.applyDataMask=function(b){b=b||a.jMaskGlobals.maskElements;(b instanceof a?b:a(b)).filter(a.jMaskGlobals.dataMaskAttr).each(f)};k={maskElements:"input,td,span,div",dataMaskAttr:"*[data-mask]",dataMask:!0,watchInterval:300,watchInputs:!0,keyStrokeCompensation:10,useInput:!/Chrome\/[2-4][0-9]|SamsungBrowser/.test(window.navigator.userAgent)&&
         k("input"),watchDataMask:!1,byPassKeys:[9,16,17,18,36,37,38,39,40,91],translation:{0:{pattern:/\d/},9:{pattern:/\d/,optional:!0},"#":{pattern:/\d/,recursive:!0},A:{pattern:/[a-zA-Z0-9]/},S:{pattern:/[a-zA-Z]/}}};a.jMaskGlobals=a.jMaskGlobals||{};k=a.jMaskGlobals=a.extend(!0,{},k,a.jMaskGlobals);k.dataMask&&a.applyDataMask();setInterval(function(){a.jMaskGlobals.watchDataMask&&a.applyDataMask()},k.watchInterval)},window.jQuery,window.Zepto);
-$(function () {
+// $(function () {
+prestashop.on('steco_event_updated', function(resp){
+    
+    if(typeof(resp.payment) == 'undefined'){
+        return;
+
+    }
+    
     $('input[name="payment-option"]').on("change", function () {
         setTimeout(function () {
             enableBlikSupport();
@@ -43,12 +50,15 @@ function enableBlikFormSupport()
         e.preventDefault();
         let $blik_pay_button = $($paynow_blik_form).find('button');
         if ($('#conditions_to_approve\\[terms-and-conditions\\], #cgv').length == 0 || $('#conditions_to_approve\\[terms-and-conditions\\], #cgv').length && $('#conditions_to_approve\\[terms-and-conditions\\], #cgv').is(':checked')) {
+            console.log($('input[name="email"]').val());
             $blik_pay_button.prop('disabled', true);
             $.ajax($paynow_blik_form.data('action'), {
+
                 method: 'POST', type: 'POST',
                 data: {
                     'blikCode': $('#paynow_blik_code').val().replace(/\s/g, ""),
-                    'token': $paynow_blik_form.data('token')
+                    'token': $paynow_blik_form.data('token'),
+                    'guestEmail': $('input[name="email"]').val(),
                 },
             }).success(function (response) {
                 $paynow_blik_error_span.text('');
@@ -72,7 +82,7 @@ function enableBlikFormSupport()
 function enableBlikSupport()
 {
     enableBlikFormSupport();
-    let $paynow_blik_code_input = $('#paynow_blik_code'), $payment_button = $('#payment-confirmation button')
+    let $paynow_blik_code_input = $('#paynow_blik_code'), $payment_button = $('#payment-confirmation .steco_confirmation_btn')
     $paynow_blik_code_input.mask('000 000', {placeholder: "___ ___"});
     if ($paynow_blik_code_input.is(':visible')) {
         var $regulations = $('#conditions_to_approve\\[terms-and-conditions\\], #cgv');
@@ -91,7 +101,7 @@ function enableBlikSupport()
 
 function enablePblSupport()
 {
-    var $payment_button = $('#payment-confirmation button');
+    var $payment_button = $('#payment-confirmation .steco_confirmation_btn');
     if ($('.paynow-payment-pbls').is(':visible')) {
         $payment_button.prop('disabled', $('input[name="paymentMethodId"]:checked').length === 0)
     }
@@ -103,7 +113,7 @@ function enablePblSupport()
 function validateBlikCode(blik_code_value)
 {
     blik_code_value = blik_code_value.replace(/\s/g, '');
-    var $payment_button = $('#payment-confirmation button'),
+    var $payment_button = $('#payment-confirmation .steco_confirmation_btn'),
         $paynow_blik_payment_button = $('.paynow-blik-form button'),
         $paynow_blik_error_span = $('#paynow_blik_code').next('span');
     if (blik_code_value.length === 6 && !isNaN(parseInt(blik_code_value)) && parseInt(blik_code_value)) {
