@@ -33,7 +33,8 @@ class PaynowChargeBlikModuleFrontController extends PaynowFrontController
         $isGuest = false; 
         $guestEmail = '';
         array_merge($response, $response['email'] = Tools::getValue('guestEmail'));
-        if(Tools::getValue('guestEmail')){
+
+        if(Tools::getValue('guestEmail') && !$this->context->customer->isLogged()) {
             $isGuest = true; 
             if(Tools::getValue('guestEmail') != ''){
                 $guestEmail = Tools::getValue('guestEmail');
